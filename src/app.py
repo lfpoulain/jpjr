@@ -157,4 +157,8 @@ if __name__ == '__main__':
     init_db()
     # Le mode debug est contrôlé par la variable d'environnement FLASK_DEBUG
     is_debug_mode = os.getenv('FLASK_DEBUG') == '1'
-    app.run(host='0.0.0.0', port=5001, debug=is_debug_mode, ssl_context='adhoc')
+    use_ssl = os.environ.get("USE_SSL", "true").lower() != "false"
+    if use_ssl:
+        app.run(host='0.0.0.0', port=5001, ssl_context='adhoc')
+    else:
+        app.run(host='0.0.0.0', port=5001)

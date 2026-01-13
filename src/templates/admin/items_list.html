@@ -213,12 +213,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                         }
                     } else {
-                        notificationManager.show(data.error || 'Erreur lors de la suppression.', 'error');
+                        notificationManager.show(data.error || 'Erreur lors de la suppression.', 'danger');
                     }
                 })
                 .catch(error => {
                     console.error('Erreur de suppression:', error);
-                    notificationManager.show(error.message || 'Une erreur réseau est survenue.', 'error');
+                    notificationManager.show(error.message || 'Une erreur réseau est survenue.', 'danger');
                 });
 
             } else {
@@ -272,12 +272,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             setTimeout(() => window.location.reload(), 1500); // Shorter delay for reload
                         }
                     } else {
-                        notificationManager.show(data.error || 'Erreur lors de la suppression des articles temporaires.', 'error');
+                        notificationManager.show(data.error || 'Erreur lors de la suppression des articles temporaires.', 'danger');
                     }
                 })
                 .catch(error => {
                     console.error('Erreur lors de la suppression des articles temporaires:', error);
-                    notificationManager.show('Une erreur réseau est survenue lors de la tentative de suppression.', 'error');
+                    notificationManager.show('Une erreur réseau est survenue lors de la tentative de suppression.', 'danger');
                 })
                 .finally(() => {
                     confirmBulkDeleteModal.hide();

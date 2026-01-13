@@ -6,7 +6,7 @@ JPJR est une petite application web développée avec Flask pour gérer un inven
 
 **Vidéo de présentation du projet :** [Lien YouTube](https://www.youtube.com/watch?v=ZFS_MIF8jPY&t)
 
-## 🚀 Démarrage Rapide
+## Démarrage Rapide
 
 ### 1. Installation locale (Python)
 
@@ -69,6 +69,12 @@ SQLITE_DB_NAME=jpjr.db
 # --- Clés d'API ---
 # Clé API pour les services OpenAI (Whisper pour la transcription, GPT pour le chat)
 OPENAI_API_KEY='sk-proj-YOUR_OPENAI_API_KEY'
+
+# --- Modèles OpenAI (optionnel) ---
+# Vous pouvez définir explicitement les modèles utilisés par JPJR.
+# Ces valeurs peuvent aussi être modifiées depuis l'interface d'administration.
+OPENAI_TRANSCRIPTION_MODEL=gpt-4o-transcribe
+OPENAI_COMPLETION_MODEL=gpt-4o-mini
 
 # --- Sécurité Flask ---
 # Clé secrète utilisée par Flask pour signer les sessions. Doit être une chaîne de caractères longue et aléatoire.
@@ -139,6 +145,12 @@ DB_PORT=5432
 # Clé API pour les services OpenAI (Whisper pour la transcription, GPT pour le chat)
 OPENAI_API_KEY='sk-proj-YOUR_OPENAI_API_KEY'
 
+# --- Modèles OpenAI (optionnel) ---
+# Vous pouvez définir explicitement les modèles utilisés par JPJR.
+# Ces valeurs peuvent aussi être modifiées depuis l'interface d'administration.
+OPENAI_TRANSCRIPTION_MODEL=gpt-4o-transcribe
+OPENAI_COMPLETION_MODEL=gpt-4o-mini
+
 # --- Sécurité Flask ---
 # Clé secrète utilisée par Flask pour signer les sessions. Doit être une chaîne de caractères longue et aléatoire.
 # Vous pouvez en générer une avec : python -c 'import secrets; print(secrets.token_hex(16))'
@@ -157,28 +169,38 @@ docker-compose up -d
 
 ---
 
-## ✨ Fonctionnalités Clés
+## Fonctionnalités Clés
 
-*   🗃️ **Gestion d'Inventaire Détaillée :** Organisez avec précision vos articles, utilisateurs et emplacements de stockage (zones, meubles, tiroirs).
-*   🤝 **Suivi d'Emprunts Efficace :** Enregistrez les prêts, définissez des dates de retour et gardez un œil sur les articles empruntés.
-*   📦 **Flexibilité des Articles : Conventionnels & Temporaires**
+*   **Gestion d'Inventaire Détaillée :** Organisez avec précision vos articles, utilisateurs et emplacements de stockage (zones, meubles, tiroirs).
+*   **Suivi d'Emprunts Efficace :** Enregistrez les prêts, définissez des dates de retour et gardez un œil sur les articles empruntés.
+*   **Flexibilité des Articles : Conventionnels & Temporaires**
     *   **Articles Conventionnels :** Vos objets permanents, soigneusement rangés avec un emplacement fixe (ex: "Zone: Bureau, Meuble: Étagère").
     *   **Articles Temporaires :** Pour les besoins du moment ! Créez-les à la volée, souvent par une simple commande vocale (ex: "piles").
-*   🔌 **API JSON Robuste :** Intégrez JPJR à d'autres outils ou services grâce à des points de terminaison complets pour les articles, prêts, emplacements et services d'IA.
-*   🎙️ **Commandes Vocales Intelligentes (propulsées par 4o Transcribe et GPT-4o-mini) :**
+*   **API JSON Robuste :** Intégrez JPJR à d'autres outils ou services grâce à des points de terminaison complets pour les articles, prêts, emplacements et services d'IA.
+*   **Commandes Vocales Intelligentes (propulsées par OpenAI) :**
     *   **Depuis le Tableau de Bord (Dashboard) :**
-        *   ⚡ **Ajout Rapide "Temporaire" :** Dictez et ajoutez instantanément des articles sans emplacement prédéfini.
-        *   🧠 **Mode "Complet" (Recherche/Ajout Intelligent) :** L'IA identifie vos articles, les rapproche de votre inventaire existant ou crée de nouveaux articles temporaires. (Note : peut solliciter davantage l'API pour une pertinence accrue).
-    *   🏠 **Page Dédiée "Ajout Vocal Conventionnel" :** Dictez le nom de l'article ET son emplacement (Zone, Meuble, Tiroir) pour l'intégrer parfaitement à votre système de rangement, avec l'aide de l'IA pour un rapprochement intelligent.
-*   💬 **Dialogue avec vos Données (via GPT-4o-mini) :** Posez des questions en langage naturel sur votre inventaire directement depuis la barre de menu !
-*   📄 **Export PDF Pratique :** Obtenez une copie de votre inventaire complet au format PDF en un clic.
+        *   **Ajout Rapide "Temporaire" :** Dictez et ajoutez instantanément des articles sans emplacement prédéfini.
+        *   **Mode "Complet" (Recherche/Ajout Intelligent) :** L'IA identifie vos articles, les rapproche de votre inventaire existant ou crée de nouveaux articles temporaires. (Note : peut solliciter davantage l'API pour une pertinence accrue).
+    *   **Page Dédiée "Ajout Vocal Conventionnel" :** Dictez le nom de l'article ET son emplacement (Zone, Meuble, Tiroir) pour l'intégrer parfaitement à votre système de rangement, avec l'aide de l'IA pour un rapprochement intelligent.
+*   **Dialogue avec vos Données (via OpenAI) :** Posez des questions en langage naturel sur votre inventaire directement depuis la barre de menu !
+*   **Export PDF Pratique :** Obtenez une copie de votre inventaire complet au format PDF en un clic.
 
-## 🗄️ Base de Données : Flexibilité SQLite & PostgreSQL
+### Modèles IA (sélection)
+
+- **Transcription (STT)** : pilotée par `OPENAI_TRANSCRIPTION_MODEL`.
+- **Extraction / Chat** : pilotés par `OPENAI_COMPLETION_MODEL`.
+- **Configuration** :
+  - via `.env` (recommandé pour initialiser les valeurs),
+  - ou via l'interface admin `/admin/app-config` (avec possibilité de saisir un modèle « autre/custom »).
+
+Selon le modèle choisi, un redémarrage de l'application peut être nécessaire.
+
+## Base de Données : Flexibilité SQLite & PostgreSQL
 
 *   **SQLite (par défaut) :** Idéal pour une utilisation locale et un développement rapide. La base de données est un simple fichier dans le projet.
 *   **PostgreSQL :** Recommandé pour une utilisation plus robuste. Il permet d'exposer la base de données à des outils externes, notamment pour des applications d'intelligence artificielle qui pourraient avoir besoin d'analyser les données d'inventaire.
 
-## 🏗️ Structure du Projet
+## Structure du Projet
 
 ```
 config/                           # Modules de configuration

@@ -1,6 +1,5 @@
 from flask import Flask, redirect, url_for, request
 import os
-import sys
 from dotenv import load_dotenv
 
 # Ajouter le répertoire parent au chemin de recherche pour les importations
@@ -22,6 +21,7 @@ app = Flask(__name__,
     static_url_path='/static'  # URL pour accéder aux fichiers statiques
 )
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-replace-in-production')
+app.config['DEBUG'] = os.getenv('FLASK_DEBUG') == '1'
 app.config['SQLALCHEMY_DATABASE_URI'] = get_connection_string()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -155,10 +155,8 @@ if __name__ == '__main__':
     # Configure logging
     setup_logging(app)
     init_db()
-    # Le mode debug est contrôlé par la variable d'environnement FLASK_DEBUG
-    is_debug_mode = os.getenv('FLASK_DEBUG') == '1'
     use_ssl = os.environ.get("USE_SSL", "true").lower() != "false"
     if use_ssl:
-        app.run(host='0.0.0.0', port=5001, ssl_context='adhoc')
+        app.run(host='0.0.0.0', port=5001, ssl_context='adhoc', debug=app.debug)
     else:
-        app.run(host='0.0.0.0', port=5001)
+        app.run(host='0.0.0.0', port=5001, debug=app.debug)

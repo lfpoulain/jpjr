@@ -18,19 +18,15 @@
     <!-- Styles supplémentaires -->
     {% block extra_css %}{% endblock %}
 
-    <!-- Configuration du mode débogage pour JavaScript -->
-    <script>
-        window.FLASK_DEBUG_MODE = {{ FLASK_DEBUG_MODE|tojson }};
-    </script>
     <script src="{{ url_for('static', filename='js/logger.js') }}"></script>
 </head>
-<body>
+<body data-flask-debug="{{ 'true' if FLASK_DEBUG_MODE else 'false' }}">
     {% block navbar %}
     {% if 'user_id' in session %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.dashboard') }}">
-                <img src="{{ url_for('static', filename='images/logov2_nobackground.png') }}" alt="Logo" class="me-2" style="height: 40px; width: auto;">
+                <img src="{{ url_for('static', filename='images/logov2_nobackground.png') }}" alt="Logo" class="me-2 app-logo app-logo--nav">
                 <span>
                     {% if request.endpoint in ['admin', 'location.location_admin', 'user_list', 'items_list', 'db_config'] %}
                     Administration
@@ -83,16 +79,7 @@
 
     <div class="container mt-4 mb-4">
         {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    {% if not message.startswith('Bienvenue') %}
-                    <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
+            <script id="flashed-messages" type="application/json">{{ messages|tojson }}</script>
         {% endwith %}
 
         {% block content %}{% endblock %}
@@ -106,6 +93,27 @@
     
     <!-- Script principal -->
     <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const el = document.getElementById('flashed-messages');
+            if (!el) return;
+            let messages = [];
+            try {
+                messages = JSON.parse(el.textContent || '[]');
+            } catch (e) {
+                messages = [];
+            }
+            if (!Array.isArray(messages) || messages.length === 0) return;
+            messages.forEach((pair) => {
+                const category = Array.isArray(pair) ? pair[0] : 'info';
+                const message = Array.isArray(pair) ? pair[1] : '';
+                if (!message || (typeof message === 'string' && message.startsWith('Bienvenue'))) return;
+                if (typeof notificationManager !== 'undefined' && notificationManager.show) {
+                    notificationManager.show(message, category);
+                }
+            });
+        });
+    </script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/accessibility.js') }}"></script>
     

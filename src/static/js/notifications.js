@@ -28,6 +28,9 @@ class NotificationManager {
      * @returns {HTMLElement} - L'élément de notification créé
      */
     show(message, type = 'info', duration = 5000) {
+        if (type === 'error') {
+            type = 'danger';
+        }
         const notification = document.createElement('div');
         // Utiliser les classes d'alerte Bootstrap 5
         // Le type (success, warning, danger, info) correspond déjà aux classes Bootstrap

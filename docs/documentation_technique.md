@@ -68,6 +68,7 @@ Les routes sont regroupées par thème dans différents blueprints.
 - `/admin/users` : gestion des utilisateurs.
 - `/admin/locations` : création et édition des emplacements.
 - `/admin/db-config` : modification des paramètres `.env` via un formulaire.
+- `/admin/app-config` : configuration des paramètres OpenAI (clé API et sélection des modèles).
 
 ### 4.3 API items (`/api/items`)
 - `GET /api/items` : liste paginée et filtrable des articles.
@@ -96,6 +97,22 @@ Les routes sont regroupées par thème dans différents blueprints.
 
 Le fichier `src/services/ai_service.py` centralise les appels à l'API OpenAI. Il met en oeuvre un logger Python afin de pouvoir suivre précisément les étapes (transcription, extraction, comparaison avec la base). Les anciennes instructions `print()` ont été remplacées par `logging` pour un meilleur contrôle de la verbosité.
 
+### 5.1 Sélection des modèles
+
+Deux variables d'environnement pilotent les modèles :
+
+- `OPENAI_TRANSCRIPTION_MODEL` : modèle de transcription audio (STT) utilisé par `transcribe_audio`.
+- `OPENAI_COMPLETION_MODEL` : modèle utilisé pour l'extraction/analyse et le chat (endpoints `/api/ai/extract` et `/api/ai/chat/inventory`).
+
+Ces valeurs peuvent être :
+
+- définies dans le fichier `.env`,
+- ou modifiées depuis l'interface admin `/admin/app-config`.
+
+L'écran admin propose des choix “connus” via liste déroulante, avec une option **Autre** permettant de saisir un modèle **custom**.
+
+Selon l'environnement d'exécution, un redémarrage de l'application peut être nécessaire après changement de modèle.
+
 Fonctions clés :
 - `transcribe_audio` : soumet le fichier audio à Whisper.
 - `extract_items_from_text` : déduit une liste d'articles depuis une phrase libre.
@@ -112,7 +129,14 @@ Les scripts sont placés sous `src/static/js`. Quelques-uns à connaître :
 - `location-core.js` : fonctions communes pour manipuler l'arborescence des emplacements.
 - `admin-locations.js` et `item-locations.js` : interfaces spécifiques pour l'administration des zones/meubles/tiroirs et l'association des articles aux emplacements.
 
-Un gestionnaire de notifications (`NotificationManager`) est utilisé pour afficher de manière uniforme messages d'erreur ou confirmations.
+Un gestionnaire de notifications (`NotificationManager`, fichier `static/js/notifications.js`) est utilisé pour afficher de manière uniforme messages d'erreur ou confirmations.
+
+Le système est basé sur :
+
+- une création dynamique d'un conteneur `.notification-container` dans le `body`,
+- des notifications rendues sous forme d'alertes Bootstrap (`.alert.alert-success|warning|danger|info`).
+
+Les messages Flask `flash()` sont centralisés dans `base.html` et affichés via ce même gestionnaire (toasts), afin d'éviter les bandeaux “inline” spécifiques à certaines pages.
 
 ## 7. Journalisation (Logging)
 
@@ -159,6 +183,8 @@ Cette documentation vise à donner une vue d'ensemble suffisamment détaillée p
 - `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_PORT` : paramètres PostgreSQL.
 - `SQLITE_DB_NAME` : nom du fichier SQLite si `DB_TYPE=sqlite`.
 - `OPENAI_API_KEY` : clé d'accès à l'API OpenAI pour la transcription et GPT.
+- `OPENAI_TRANSCRIPTION_MODEL` : modèle OpenAI pour la transcription audio (STT).
+- `OPENAI_COMPLETION_MODEL` : modèle OpenAI pour l'extraction/analyse et le chat.
 - `SECRET_KEY` : clé secrète Flask pour la gestion de session.
 
 Toutes ces variables peuvent être modifiées depuis l'interface `/admin/db-config` sauf la clé secrète qui doit être définie manuellement dans le `.env`.

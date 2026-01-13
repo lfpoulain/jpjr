@@ -8,6 +8,45 @@ document.addEventListener('DOMContentLoaded', async function() {
         appLog.log('Page autre que le dashboard, pas d\'initialisation nécessaire');
         return;
     }
+
+    window.initDashboardUI = function() {
+        const addItemModal = document.getElementById('addItemModal');
+        if (addItemModal) {
+            addItemModal.addEventListener('hidden.bs.modal', function() {
+                $('#itemName').val('');
+                $('#itemZone').val('').prop('disabled', false);
+                $('#itemFurniture').val('').prop('disabled', true);
+                $('#itemDrawer').val('').prop('disabled', true);
+                $('.suggestions-list').empty().addClass('d-none');
+            });
+        }
+
+        const saveTempItemBtn = document.getElementById('saveTempItem');
+        const tempItemNameInput = document.getElementById('tempItemName');
+        const tempItemModalEl = document.getElementById('addTempItemModal');
+        if (saveTempItemBtn && tempItemNameInput && tempItemModalEl) {
+            if (!saveTempItemBtn.dataset.bound) {
+                saveTempItemBtn.dataset.bound = 'true';
+                saveTempItemBtn.addEventListener('click', function() {
+                    const tempItemName = tempItemNameInput.value.trim();
+                    if (!tempItemName) {
+                        notificationManager.error('Veuillez saisir un nom d\'article.');
+                        return;
+                    }
+
+                    if (typeof window.addTemporaryItem === 'function') {
+                        window.addTemporaryItem(tempItemName);
+                    }
+
+                    tempItemNameInput.value = '';
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                        const modal = bootstrap.Modal.getOrCreateInstance(tempItemModalEl);
+                        modal.hide();
+                    }
+                });
+            }
+        }
+    }
     
     appLog.log('Page dashboard détectée, initialisation...');
     

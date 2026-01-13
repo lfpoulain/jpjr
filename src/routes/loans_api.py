@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, current_app
 from src.models import db
 from src.models.borrow import Borrow
 from src.models.item import Item
@@ -159,17 +159,17 @@ def get_loans():
     """
     API pour récupérer la liste des emprunts
     """
-    print("API get_loans appelée avec params:", request.args)
+    current_app.logger.debug("[get_loans] called with params: %s", dict(request.args))
     
     if 'user_id' not in session:
-        print("Erreur: Utilisateur non authentifié")
+        current_app.logger.info("[get_loans] unauthenticated request")
         return jsonify({'error': 'Non authentifié'}), 401
     
     # Récupérer les paramètres de filtrage
     user_id = request.args.get('user_id') or session['user_id']  # Utiliser l'ID de l'utilisateur connecté par défaut
     active_only = request.args.get('active_only', 'false').lower() == 'true'
     
-    print(f"Recherche des emprunts pour user_id={user_id}, active_only={active_only}")
+    current_app.logger.debug("[get_loans] filtering user_id=%s active_only=%s", user_id, active_only)
     
     # Construire la requête de base
     query = db.session.query(Borrow)

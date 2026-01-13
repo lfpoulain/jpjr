@@ -19,7 +19,7 @@ def voice_recognition():
         return jsonify({'error': 'Aucun fichier audio n\'a été fourni'}), 400
     
     audio_file = request.files['audio']
-    audio_mime_type = request.form.get('mimeType', 'audio/webm') # Default au cas où
+    audio_mime_type = request.form.get('mime_type') or request.form.get('mimeType') or 'audio/webm'
     
     if audio_file.filename == '':
         return jsonify({'error': 'Nom de fichier audio invalide'}), 400
@@ -76,7 +76,7 @@ def inventory_voice_recognition():
         return jsonify({'error': 'Aucun fichier audio n\'a été fourni'}), 400
     
     audio_file = request.files['audio']
-    audio_mime_type = request.form.get('mimeType', 'audio/webm') # Default au cas où
+    audio_mime_type = request.form.get('mime_type') or request.form.get('mimeType') or 'audio/webm'
     
     if audio_file.filename == '':
         return jsonify({'error': 'Nom de fichier audio invalide'}), 400

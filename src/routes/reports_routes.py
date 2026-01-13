@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, send_file, Response, current_app
-from functools import wraps
 import csv
 import io
 import os
@@ -58,15 +57,6 @@ def export_items_csv():
         mimetype="text/csv",
         headers={"Content-Disposition": f"attachment;filename=articles_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"}
     )
-
-# Décorateur pour supprimer un fichier après la réponse
-def after_this_request(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        response = func(*args, **kwargs)
-        request._after_this_request_functions.append(lambda: func(*args, **kwargs))
-        return response
-    return wrapper
 
 # Génération d'un PDF des emprunts d'un utilisateur
 @reports_bp.route('/generate_pdf', methods=['POST'])
@@ -144,23 +134,21 @@ def generate_pdf():
     
     # Envoyer le fichier PDF au client
     try:
-        return_data = send_file(
+        response = send_file(
             pdf_path,
             mimetype='application/pdf',
             as_attachment=True,
             download_name=f'emprunts_{user.name}_{datetime.now().strftime("%Y%m%d")}.pdf'
         )
         
-        # Nettoyer le fichier temporaire après l'envoi
-        @after_this_request
-        def remove_file(response):
+        @response.call_on_close
+        def cleanup_file():
             try:
                 os.unlink(pdf_path)
-            except Exception as e:
-                print(f"Erreur lors de la suppression du fichier temporaire: {e}")
-            return response
-            
-        return return_data
+            except Exception as e_clean:
+                current_app.logger.error(f"Erreur lors du nettoyage du fichier PDF temporaire {pdf_path}: {e_clean}")
+        
+        return response
     except Exception as e:
         # En cas d'erreur, supprimer le fichier temporaire et retourner une erreur
         try:

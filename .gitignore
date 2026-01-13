@@ -6,3 +6,4 @@ __pycache__/
 # Fichiers de log
 logs/
 *.log
+/venv

@@ -11,17 +11,6 @@
     </div>
     <div class="card">
         <div class="card-body">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-
             {% if page_info_message and page_info_category %}
                 <div class="alert alert-{{ page_info_category }} alert-dismissible fade show" role="alert">
                     {{ page_info_message }}
@@ -34,6 +23,31 @@
                     <label for="OPENAI_API_KEY" class="form-label">Clé API OpenAI</label>
                     <input type="password" class="form-control" id="OPENAI_API_KEY" name="OPENAI_API_KEY" value="" placeholder="Entrez une nouvelle clé API ici (ex: sk-...)">
                     <small class="form-text text-muted">Laissez vide si vous ne souhaitez pas modifier la clé existante. Pour des raisons de sécurité, la clé actuelle n'est pas affichée.</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="OPENAI_TRANSCRIPTION_MODEL" class="form-label">Modèle de transcription OpenAI</label>
+                    <select class="form-select" id="OPENAI_TRANSCRIPTION_MODEL" name="OPENAI_TRANSCRIPTION_MODEL">
+                        {% set current_transcription_model = raw_config.OPENAI_TRANSCRIPTION_MODEL | default('') %}
+                        <option value="gpt-4o-mini-transcribe" {% if current_transcription_model == 'gpt-4o-mini-transcribe' %}selected{% endif %}>gpt-4o-mini-transcribe</option>
+                        <option value="gpt-4o-transcribe" {% if current_transcription_model == 'gpt-4o-transcribe' %}selected{% endif %}>gpt-4o-transcribe</option>
+                        <option value="__custom__" {% if current_transcription_model not in ['gpt-4o-mini-transcribe', 'gpt-4o-transcribe'] and current_transcription_model %}selected{% endif %}>Autre (saisir ci-dessous)</option>
+                    </select>
+                    <input type="text" class="form-control mt-2" id="OPENAI_TRANSCRIPTION_MODEL_CUSTOM" name="OPENAI_TRANSCRIPTION_MODEL_CUSTOM" value="{% if current_transcription_model not in ['gpt-4o-mini-transcribe', 'gpt-4o-transcribe'] %}{{ current_transcription_model }}{% endif %}" placeholder="Autre modèle de transcription (optionnel)">
+                    <small class="form-text text-muted">Nom du modèle utilisé pour la transcription audio (STT).</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="OPENAI_COMPLETION_MODEL" class="form-label">Modèle de chat OpenAI</label>
+                    <select class="form-select" id="OPENAI_COMPLETION_MODEL" name="OPENAI_COMPLETION_MODEL">
+                        {% set current_completion_model = raw_config.OPENAI_COMPLETION_MODEL | default('') %}
+                        <option value="gpt-4.1" {% if current_completion_model == 'gpt-4.1' %}selected{% endif %}>gpt-4.1</option>
+                        <option value="gpt-4.1-mini" {% if current_completion_model == 'gpt-4.1-mini' %}selected{% endif %}>gpt-4.1-mini</option>
+                        <option value="gpt-4.1-nano" {% if current_completion_model == 'gpt-4.1-nano' %}selected{% endif %}>gpt-4.1-nano</option>
+                        <option value="__custom__" {% if current_completion_model not in ['gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano'] and current_completion_model %}selected{% endif %}>Autre (saisir ci-dessous)</option>
+                    </select>
+                    <input type="text" class="form-control mt-2" id="OPENAI_COMPLETION_MODEL_CUSTOM" name="OPENAI_COMPLETION_MODEL_CUSTOM" value="{% if current_completion_model not in ['gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano'] %}{{ current_completion_model }}{% endif %}" placeholder="Autre modèle de chat (optionnel)">
+                    <small class="form-text text-muted">Nom du modèle utilisé pour l'analyse/extraction et le chat.</small>
                 </div>
                 
                 <!-- Vous pourrez ajouter d'autres champs de configuration ici à l'avenir -->
@@ -52,7 +66,7 @@
             <p class="text-muted">Indique si les clés de configuration sont définies. Les valeurs réelles ne sont pas affichées.</p>
             <ul>
                 {% for key, value in config.items() %}
-                    <li>{{ key }}: {% if value and value != '********' and value != 'Non configurée' %}Configurée{% else %}Non configurée ou en attente de saisie{% endif %}</li>
+                    <li>{{ key }}: {% if key in ['OPENAI_TRANSCRIPTION_MODEL', 'OPENAI_COMPLETION_MODEL'] %}{% if value and value != 'Non configurée' %}{{ value }}{% else %}Non configurée ou en attente de saisie{% endif %}{% else %}{% if value and value != '********' and value != 'Non configurée' %}Configurée{% else %}Non configurée ou en attente de saisie{% endif %}{% endif %}</li>
                 {% endfor %}
             </ul>
         </div>

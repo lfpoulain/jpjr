@@ -3,14 +3,20 @@ Configuration de l'application pour JPJR.
 Gère les clés API et autres paramètres d'application via le fichier .env.
 """
 import os
+import logging
 from dotenv import load_dotenv, set_key, find_dotenv
+
+
+logger = logging.getLogger(__name__)
 
 # Charger les variables d'environnement depuis le fichier .env
 load_dotenv()
 
 # Clés de configuration gérées
 CONFIG_KEYS = {
-    'OPENAI_API_KEY': os.getenv('OPENAI_API_KEY', '')
+    'OPENAI_API_KEY': os.getenv('OPENAI_API_KEY', ''),
+    'OPENAI_TRANSCRIPTION_MODEL': os.getenv('OPENAI_TRANSCRIPTION_MODEL', ''),
+    'OPENAI_COMPLETION_MODEL': os.getenv('OPENAI_COMPLETION_MODEL', '')
 }
 
 def get_app_config_values():
@@ -32,7 +38,7 @@ def save_app_config_value(key_to_save, value_to_save):
     Retourne True en cas de succès, False sinon.
     """
     if key_to_save not in CONFIG_KEYS:
-        print(f"ERREUR: Clé de configuration inconnue: {key_to_save}")
+        logger.error("Clé de configuration inconnue: %s", key_to_save)
         return False
 
     # Mettre à jour la configuration globale CONFIG_KEYS pour la session courante
@@ -48,28 +54,35 @@ def save_app_config_value(key_to_save, value_to_save):
         if not os.path.exists(dotenv_path):
             try:
                 open(dotenv_path, 'a').close() # Crée le fichier s'il n'existe pas
-                print(f"INFO: Fichier .env créé à {dotenv_path}")
+                logger.info("Fichier .env créé à %s", dotenv_path)
             except Exception as e:
-                print(f"ERREUR: Impossible de créer le fichier .env à {dotenv_path}: {str(e)}")
+                logger.error("Impossible de créer le fichier .env à %s: %s", dotenv_path, str(e))
                 return False
     
     try:
         set_key(dotenv_path, key_to_save, str(value_to_save))
-        print(f"INFO: Configuration '{key_to_save}' enregistrée dans {dotenv_path}")
+        logger.info("Configuration '%s' enregistrée dans %s", key_to_save, dotenv_path)
         return True
     except Exception as e:
-        print(f"ERREUR: Impossible d'enregistrer la configuration '{key_to_save}' dans {dotenv_path}: {str(e)}")
+        logger.error(
+            "Impossible d'enregistrer la configuration '%s' dans %s: %s",
+            key_to_save,
+            dotenv_path,
+            str(e),
+        )
         return False
 
 if __name__ == '__main__':
-    print("Configuration actuelle de l'application:")
-    print(get_app_config_values())
+    logging.basicConfig(level=logging.INFO)
+    logger.info("Configuration actuelle de l'application:")
+    logger.info(get_app_config_values())
 
     # Test de sauvegarde (décommenter pour tester)
     # test_key = 'OPENAI_API_KEY'
     # test_value = 'nouvelle_cle_api_test_123'
-    # print(f"\nTest de sauvegarde pour {test_key}...")
+    # logger.info("\nTest de sauvegarde pour %s...", test_key)
     # if save_app_config_value(test_key, test_value):
+    #     logger.info("  %s sauvegardée avec succès.", test_key)
     #     print(f"  {test_key} sauvegardée avec succès.")
     #     reloaded_config = get_app_config_values()
     #     print(f"  Valeur rechargée: {reloaded_config.get(test_key)}")

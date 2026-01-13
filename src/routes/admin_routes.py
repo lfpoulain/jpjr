@@ -5,11 +5,6 @@ from src.models.user import User
 from src.models.item import Item
 from src.models.borrow import Borrow
 from src.models.location import Zone, Furniture, Drawer
-import os
-import sys
-
-# Ajouter le répertoire parent au chemin de recherche pour les importations
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from config.database import save_config as save_db_config, get_postgres_config_values, DB_TYPE
 from config.app_config import get_app_config_values, save_app_config_value
 
@@ -88,15 +83,35 @@ def app_config():
 
     if request.method == 'POST':
         openai_api_key_from_form = request.form.get('OPENAI_API_KEY')
-
+        openai_transcription_model_from_form = request.form.get('OPENAI_TRANSCRIPTION_MODEL')
+        openai_completion_model_from_form = request.form.get('OPENAI_COMPLETION_MODEL')
+        openai_transcription_model_custom_from_form = request.form.get('OPENAI_TRANSCRIPTION_MODEL_CUSTOM')
+        openai_completion_model_custom_from_form = request.form.get('OPENAI_COMPLETION_MODEL_CUSTOM')
+ 
         if openai_api_key_from_form: # Sauvegarder seulement si une nouvelle clé est entrée
             if save_app_config_value('OPENAI_API_KEY', openai_api_key_from_form):
                 flash('Clé API OpenAI mise à jour avec succès. Un redémarrage de l\'application peut être nécessaire.', 'success')
             else:
                 flash('Erreur lors de la mise à jour de la clé API OpenAI.', 'error')
-        else:
-            flash('Le champ de la clé API OpenAI était vide. Aucune modification apportée à cette clé.', 'info')
-        
+
+        if openai_transcription_model_from_form is not None:
+            transcription_model_to_save = openai_transcription_model_from_form
+            if transcription_model_to_save == '__custom__':
+                transcription_model_to_save = (openai_transcription_model_custom_from_form or '').strip()
+            if save_app_config_value('OPENAI_TRANSCRIPTION_MODEL', transcription_model_to_save):
+                flash('Modèle de transcription OpenAI mis à jour. Un redémarrage de l\'application peut être nécessaire.', 'success')
+            else:
+                flash('Erreur lors de la mise à jour du modèle de transcription OpenAI.', 'error')
+
+        if openai_completion_model_from_form is not None:
+            completion_model_to_save = openai_completion_model_from_form
+            if completion_model_to_save == '__custom__':
+                completion_model_to_save = (openai_completion_model_custom_from_form or '').strip()
+            if save_app_config_value('OPENAI_COMPLETION_MODEL', completion_model_to_save):
+                flash('Modèle de chat OpenAI mis à jour. Un redémarrage de l\'application peut être nécessaire.', 'success')
+            else:
+                flash('Erreur lors de la mise à jour du modèle de chat OpenAI.', 'error')
+         
         # Gérer d'autres clés de configuration ici si nécessaire à l'avenir
         return redirect(url_for('admin.app_config'))
 
@@ -106,7 +121,10 @@ def app_config():
     config_for_template = {}
     for key, value in current_app_config.items():
         if value: 
-            config_for_template[key] = "Configurée"
+            if key in ['OPENAI_TRANSCRIPTION_MODEL', 'OPENAI_COMPLETION_MODEL']:
+                config_for_template[key] = value
+            else:
+                config_for_template[key] = "Configurée"
         else:
             config_for_template[key] = "Non configurée"
 
@@ -115,7 +133,8 @@ def app_config():
         page_info_category = 'info'
         
     return render_template('admin/app_config.html',
-                           config=config_for_template, 
+                           config=config_for_template,
+                           raw_config=current_app_config,
                            page_info_message=page_info_message,
                            page_info_category=page_info_category)
 

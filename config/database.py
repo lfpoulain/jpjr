@@ -3,7 +3,11 @@ Configuration de la base de données pour JPJR.
 Permet de choisir entre PostgreSQL et SQLite via la variable d'environnement DB_TYPE.
 """
 import os
+import logging
 from dotenv import load_dotenv, set_key, find_dotenv
+
+
+logger = logging.getLogger(__name__)
 
 # Charger les variables d'environnement depuis le fichier .env
 load_dotenv()
@@ -49,13 +53,18 @@ def get_connection_string():
         data_dir = os.path.join(project_root, 'data')
         os.makedirs(data_dir, exist_ok=True)
         sqlite_db_path = os.path.join(data_dir, SQLITE_DB_NAME)
-        print(f"INFO: Utilisation de la base de données SQLite: {sqlite_db_path}")
+        logger.info("Utilisation de la base de données SQLite: %s", sqlite_db_path)
         return f"sqlite:///{sqlite_db_path}"
     
     elif DB_TYPE == 'postgresql':
         # Utiliser la configuration par défaut pour PostgreSQL (chargée directement depuis .env via DEFAULT_PG_CONFIG)
         pg_config = DEFAULT_PG_CONFIG
-        print(f"INFO: Utilisation de la base de données PostgreSQL: {pg_config['database']} sur {pg_config['host']}:{pg_config['port']}")
+        logger.info(
+            "Utilisation de la base de données PostgreSQL: %s sur %s:%s",
+            pg_config['database'],
+            pg_config['host'],
+            pg_config['port'],
+        )
         return f"postgresql://{pg_config['user']}:{pg_config['password']}@{pg_config['host']}:{pg_config['port']}/{pg_config['database']}"
     else:
         raise ValueError(f"Type de base de données non supporté: '{DB_TYPE}'. Les valeurs autorisées sont 'postgresql' ou 'sqlite'.")
@@ -92,22 +101,22 @@ def save_config(host, database, user, password, port):
         if not os.path.exists(dotenv_path):
             try:
                 open(dotenv_path, 'a').close() # Crée le fichier s'il n'existe pas
-                print(f"INFO: Fichier .env créé à {dotenv_path}")
+                logger.info("Fichier .env créé à %s", dotenv_path)
             except Exception as e:
-                print(f"ERREUR: Impossible de créer le fichier .env à {dotenv_path}: {str(e)}")
+                logger.error("Impossible de créer le fichier .env à %s: %s", dotenv_path, str(e))
                 raise
     
     try:
         for key, value in config_to_update_in_env.items():
             set_key(dotenv_path, key, str(value)) # S'assurer que la valeur est une chaîne
-        print(f"INFO: Configuration PostgreSQL enregistrée dans {dotenv_path}")
+        logger.info("Configuration PostgreSQL enregistrée dans %s", dotenv_path)
     except Exception as e:
-        print(f"ERREUR: Impossible d'enregistrer la configuration PostgreSQL dans {dotenv_path}: {str(e)}")
+        logger.error("Impossible d'enregistrer la configuration PostgreSQL dans %s: %s", dotenv_path, str(e))
         raise Exception(f"Erreur lors de l'enregistrement de la configuration PostgreSQL: {str(e)}")
     
     # Retourner la chaîne de connexion PostgreSQL basée sur les paramètres fournis et sauvegardés
     # Ceci est utile si l'appelant veut immédiatement utiliser cette nouvelle configuration.
-    print(f"INFO: Génération de la chaîne de connexion pour la configuration PostgreSQL sauvegardée.")
+    logger.info("Génération de la chaîne de connexion pour la configuration PostgreSQL sauvegardée.")
     return f"postgresql://{user}:{password}@{host}:{port}/{database}"
 
 def get_postgres_config_values():
@@ -119,7 +128,8 @@ def get_postgres_config_values():
 
 # Exemple d'utilisation (peut être retiré ou commenté en production)
 if __name__ == '__main__':
-    print("Configuration actuelle de la base de données:")
+    logging.basicConfig(level=logging.INFO)
+    logger.info("Configuration actuelle de la base de données:")
     # Pour tester, vous pouvez définir DB_TYPE dans votre environnement
     # export DB_TYPE=sqlite
     # export DB_TYPE=postgresql
@@ -127,12 +137,12 @@ if __name__ == '__main__':
     # DB_TYPE = 'sqlite'
     # DB_TYPE = 'postgresql'
     
-    print(f"  DB_TYPE sélectionné: {DB_TYPE}")
+    logger.info("  DB_TYPE sélectionné: %s", DB_TYPE)
     try:
         connection_string = get_connection_string()
-        print(f"  Chaîne de connexion générée: {connection_string}")
+        logger.info("  Chaîne de connexion générée: %s", connection_string)
     except ValueError as e:
-        print(f"ERREUR: {e}")
+        logger.error("ERREUR: %s", e)
 
     # Test de save_config (ne l'exécutez que si vous voulez modifier/créer db_config.json)
     # if DB_TYPE == 'postgresql':

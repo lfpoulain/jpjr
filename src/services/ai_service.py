@@ -27,8 +27,10 @@ class AIService:
         self.api_key = os.environ.get('OPENAI_API_KEY')
         self.transcription_url = 'https://api.openai.com/v1/audio/transcriptions'
         self.completion_url = 'https://api.openai.com/v1/chat/completions'
-        self.model_transcription = 'gpt-4o-transcribe'
-        self.model_completion = 'gpt-4o-mini'
+        transcription_model = os.environ.get('OPENAI_TRANSCRIPTION_MODEL')
+        completion_model = os.environ.get('OPENAI_COMPLETION_MODEL')
+        self.model_transcription = transcription_model.strip() if transcription_model and transcription_model.strip() else 'gpt-4o-transcribe'
+        self.model_completion = completion_model.strip() if completion_model and completion_model.strip() else 'gpt-4o-mini'
         
     def getFileExtension(self, mime_type):
         """

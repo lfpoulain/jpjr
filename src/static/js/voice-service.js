@@ -152,33 +152,51 @@ class BaseVoiceRecognition {
                 
                 // Animer le visualiseur
                 this.visualizer.classList.add('recording');
+                this.visualizer.classList.add('realtime');
                 
                 // Configurer l'analyseur audio pour la visualisation
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 const analyser = audioContext.createAnalyser();
                 const microphone = audioContext.createMediaStreamSource(stream);
                 microphone.connect(analyser);
-                analyser.fftSize = 256;
+                analyser.fftSize = 128;
+                analyser.smoothingTimeConstant = 0.8;
                 const bufferLength = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferLength);
+                const bars = this.visualizer ? this.visualizer.querySelectorAll('.voice-bar') : [];
+                const minBarHeight = 6;
+                const maxBarHeight = 54;
+                const focusBins = Math.max(4, Math.floor(bufferLength * 0.35));
                 
-                // Fonction pour dessiner les ondes audio
+                // Fonction pour dessiner les barres (visualisation fréquence)
                 const drawWaveform = () => {
                     if (!this.isRecording) return;
                     
                     requestAnimationFrame(drawWaveform);
-                    analyser.getByteTimeDomainData(dataArray);
+                    analyser.getByteFrequencyData(dataArray);
                     
-                    // Calculer l'amplitude moyenne pour créer l'effet d'ondulation
-                    let sum = 0;
-                    for (let i = 0; i < bufferLength; i++) {
-                        sum += Math.abs(dataArray[i] - 128);
+                    if (!bars || bars.length === 0) {
+                        return;
                     }
-                    const average = sum / bufferLength;
                     
-                    // Mettre à jour la taille du visualiseur en fonction de l'amplitude
-                    const scale = 1 + (average / 50); // Ajuster ce diviseur pour changer la sensibilité
-                    this.visualizer.style.transform = `scale(${scale})`;
+                    let peak = 0;
+                    for (let i = 0; i < focusBins; i++) {
+                        const v = dataArray[i] || 0;
+                        if (v > peak) peak = v;
+                    }
+                    const global = (peak / 255);
+                    const range = (maxBarHeight - minBarHeight);
+                    const t = performance.now();
+                    for (let i = 0; i < bars.length; i++) {
+                        const ratio = bars.length === 1 ? 0 : (i / (bars.length - 1));
+                        const idx = Math.floor(ratio * (focusBins - 1));
+                        const v = dataArray[idx] || 0;
+                        const normalized = v / 255;
+                        const wobble = 0.85 + 0.15 * Math.sin((t / 140) + (i * 0.9));
+                        const mixed = ((global * 0.65) + (normalized * 0.35)) * wobble;
+                        const h = Math.round(minBarHeight + Math.min(1, mixed) * range);
+                        bars[i].style.height = `${h}px`;
+                    }
                 };
                 
                 // Démarrer la visualisation
@@ -209,6 +227,11 @@ class BaseVoiceRecognition {
             // Réinitialiser le visualiseur
             this.visualizer.style.transform = 'scale(1)';
             this.visualizer.classList.remove('recording');
+            this.visualizer.classList.remove('realtime');
+            const bars = this.visualizer ? this.visualizer.querySelectorAll('.voice-bar') : [];
+            bars.forEach((bar) => {
+                bar.style.height = '';
+            });
             
             // Si c'est une annulation, ne pas traiter l'audio
             if (isCancel) {

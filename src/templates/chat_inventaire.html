@@ -10,21 +10,20 @@
 <div id="chat-container" class="container-lg p-4">
     <h2 class="section-title-underline mb-4"><i class="bi bi-chat-dots-fill me-2"></i>Chat Inventaire</h2>
     
-    <div class="card mb-3" style="background-color: var(--theme-bg-content-panel); border: 1px solid var(--theme-border-light); border-radius: var(--border-radius-md, 0.5rem); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-        <div id="chat-messages" class="card-body overflow-y-auto p-3" style="height: 400px; position: relative; background-color: var(--theme-bg-content-panel);">
+    <div class="card mb-3 chat-card">
+        <div id="chat-messages" class="card-body overflow-y-auto p-3 chat-messages">
             <div class="system-message fst-italic text-center mb-3">Posez vos questions sur l'inventaire. L'IA utilisera la liste actuelle du matériel pour répondre.</div>
             <!-- Les messages du chat apparaîtront ici -->
         </div>
     </div>
 
-    <div id="chat-controls" style="position: relative; z-index: 10;">
+    <div id="chat-controls" class="chat-controls">
         <div id="chat-input-group" class="input-group mb-3">
-            <input type="text" id="chat-input" class="form-control form-control-lg flex-grow-1 me-2" 
+            <input type="text" id="chat-input" class="form-control form-control-lg flex-grow-1 me-2 chat-input" 
                 placeholder="Posez une question sur l'inventaire..." 
                 aria-label="Votre question"
-                style="background-color: rgba(255, 255, 255, 0.05); border: 1px solid var(--theme-border-input); color: var(--theme-text-primary); font-family: inherit;">
-            <button id="send-chat-btn" class="btn btn-lg" type="button"
                 >
+            <button id="send-chat-btn" class="btn btn-lg gradient-button" type="button">
                 <i class="bi bi-send"></i> Envoyer
             </button>
         </div>

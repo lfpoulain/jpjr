@@ -7,9 +7,16 @@
  */
 const appLog = {
     _isDebugMode: function() {
-        // Vérifie si FLASK_DEBUG_MODE est défini et est true.
-        // Par défaut, si non défini, on considère que le mode debug est désactivé.
-        return typeof window.FLASK_DEBUG_MODE !== 'undefined' && window.FLASK_DEBUG_MODE === true;
+        if (typeof window.FLASK_DEBUG_MODE !== 'undefined') {
+            return window.FLASK_DEBUG_MODE === true;
+        }
+
+        const body = document && document.body;
+        if (body && body.dataset && typeof body.dataset.flaskDebug === 'string') {
+            return body.dataset.flaskDebug === 'true';
+        }
+
+        return false;
     },
 
     /**

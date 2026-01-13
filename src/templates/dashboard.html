@@ -247,46 +247,10 @@
 <script src="{{ url_for('static', filename='js/voice-service.js') }}"></script>
 <script>
 // Gestion de la modal d'ajout d'article temporaire
-$(document).ready(function() {
-    console.log('Initialisation des gestionnaires d\'événements du dashboard...');
-    
-    // Détacher tous les gestionnaires d'événements existants
-    $('#borrowForm').off('submit');
-    
-    // Réinitialiser la modal d'ajout d'article standard lorsqu'elle est fermée
-    $('#addItemModal').on('hidden.bs.modal', function () {
-        // Réinitialiser les champs de formulaire
-        $('#itemName').val('');
-        $('#itemZone').val('').prop('disabled', false);
-        $('#itemFurniture').val('').prop('disabled', true);
-        $('#itemDrawer').val('').prop('disabled', true);
-        
-        // Vider et masquer la liste de suggestions
-        $('.suggestions-list').empty().addClass('d-none');
-    });
-    
-    // Référence au bouton de sauvegarde de l'article temporaire
-    const saveTempItemBtn = document.getElementById('saveTempItem');
-    const tempItemNameInput = document.getElementById('tempItemName');
-    const tempItemModal = new bootstrap.Modal(document.getElementById('addTempItemModal'));
-    
-    // Gérer le clic sur le bouton "Ajouter" de la modal d'article temporaire
-    saveTempItemBtn.addEventListener('click', function() {
-        const tempItemName = tempItemNameInput.value.trim();
-        
-        if (!tempItemName) {
-            notificationManager.error('Veuillez saisir un nom d\'article.');
-            return;
-        }
-        
-        // Créer un nouvel item temporaire et l'ajouter à la liste
-        // Utiliser la fonction addTemporaryItem qui existe déjà dans main.js
-        addTemporaryItem(tempItemName);
-        
-        // Réinitialiser et fermer la modal
-        tempItemNameInput.value = '';
-        tempItemModal.hide();
-    });
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.initDashboardUI && typeof window.initDashboardUI === 'function') {
+        window.initDashboardUI();
+    }
 });
 </script>
 {% endblock %}

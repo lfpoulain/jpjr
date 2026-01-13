@@ -9,7 +9,8 @@ if not os.path.exists('logs'):
 def setup_logging(app):
     # Si un gestionnaire par défaut est présent, le supprimer pour éviter les doublons
     if app.logger.handlers:
-        app.logger.removeHandler(app.logger.handlers[0])
+        for handler in list(app.logger.handlers):
+            app.logger.removeHandler(handler)
 
     # Formatter pour les logs
     formatter = logging.Formatter(
@@ -23,29 +24,40 @@ def setup_logging(app):
     # En mode debug, afficher les messages DEBUG et supérieurs.
     console_handler.setLevel(logging.WARNING if not app.debug else logging.DEBUG)
 
-    # Handler pour le fichier de log général (avec rotation)
-    file_handler = RotatingFileHandler(
-        'logs/jpjr.log', maxBytes=10240, backupCount=10
-    )
-    file_handler.setFormatter(formatter)
-    # En mode production (app.debug est False), enregistrer les messages INFO et supérieurs dans jpjr.log.
-    # En mode debug, enregistrer les messages DEBUG et supérieurs.
-    file_handler.setLevel(logging.INFO if not app.debug else logging.DEBUG)
-
-    # Handler pour le fichier d'erreurs (avec rotation)
-    error_handler = RotatingFileHandler(
-        'logs/error.log', maxBytes=10240, backupCount=10
-    )
-    error_handler.setFormatter(formatter)
-    error_handler.setLevel(logging.ERROR)
-
     # Ajoute les handlers au logger de l'application
     # Le logger racine est configuré pour capturer les logs de toutes les bibliothèques (ex: SQLAlchemy)
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
+    for handler in list(root_logger.handlers):
+        root_logger.removeHandler(handler)
+        try:
+            handler.close()
+        except Exception:
+            pass
     root_logger.addHandler(console_handler)
-    root_logger.addHandler(file_handler)
-    root_logger.addHandler(error_handler)
+
+    is_reloader_child = os.environ.get('WERKZEUG_RUN_MAIN') == 'true'
+    enable_file_logging = (not app.debug) or is_reloader_child
+
+    if enable_file_logging:
+        # Handler pour le fichier de log général (avec rotation)
+        file_handler = RotatingFileHandler(
+            'logs/jpjr.log', maxBytes=1048576, backupCount=10, encoding='utf-8', delay=True
+        )
+        file_handler.setFormatter(formatter)
+        # En mode production (app.debug est False), enregistrer les messages INFO et supérieurs dans jpjr.log.
+        # En mode debug, enregistrer les messages DEBUG et supérieurs.
+        file_handler.setLevel(logging.INFO if not app.debug else logging.DEBUG)
+
+        # Handler pour le fichier d'erreurs (avec rotation)
+        error_handler = RotatingFileHandler(
+            'logs/error.log', maxBytes=1048576, backupCount=10, encoding='utf-8', delay=True
+        )
+        error_handler.setFormatter(formatter)
+        error_handler.setLevel(logging.ERROR)
+
+        root_logger.addHandler(file_handler)
+        root_logger.addHandler(error_handler)
 
     if not app.debug:
         # En mode production, réduire la verbosité de Werkzeug
